@@ -1,10 +1,10 @@
 import { ethers } from 'ethers'
 
-const Navigation = ({ account, setAccount }) => {
+const Navigation = ({ accounts, setAccounts }) => {
   const connectHandler = async () => {
     const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' })
     const account = ethers.utils.getAddress(accounts[0])
-    setAccount(account)
+    setAccounts(accounts)
   }
 
   return (
@@ -22,12 +22,12 @@ const Navigation = ({ account, setAccount }) => {
         </ul>
       </div>
 
-      {account ? (
+      {accounts ? (
         <button
           type="button"
           className='nav__connect'
         >
-          {account.slice(0, 6) + '...' + account.slice(38, 42)}
+          {`${accounts.slice(0, 5)}...${accounts.slice(36,40)}`}
         </button>
       ) : (
         <button

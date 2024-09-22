@@ -8,86 +8,88 @@ import Card from './components/Card'
 import SeatChart from './components/SeatChart'
 
 // ABIs
-import TokenMaster from './abis/TokenMaster.json'
+import TokenMasterABI from './abis/TokenMaster.json'
 
 // Config
 import config from './config.json'
 
 function App() {
-  const [provider, setProvider] = useState(null)
-  const [account, setAccount] = useState(null)
+  const [accounts, setAccounts] = useState(null);
+  const [provider, setProvider] = useState(null);
+  const [tokenMaster, setTokenMaster] = useState(null);
+  const [allOccasion, setAllOccasion] = useState([]);
+  const [oneOccasion, setOneOccasion] = useState({});
+  const [toggle, setToggle] = useState(false);
 
-  const [tokenMaster, setTokenMaster] = useState(null)
-  const [occasions, setOccasions] = useState([])
-
-  const [occasion, setOccasion] = useState({})
-  const [toggle, setToggle] = useState(false)
-
-  const loadBlockchainData = async () => {
-    const provider = new ethers.providers.Web3Provider(window.ethereum)
-    setProvider(provider)
-
-    const network = await provider.getNetwork()
-    const tokenMaster = new ethers.Contract(config[network.chainId].TokenMaster.address, TokenMaster, provider)
-    setTokenMaster(tokenMaster)
-
-    const totalOccasions = await tokenMaster.totalOccasions()
-    const occasions = []
-
-    for (var i = 1; i <= totalOccasions; i++) {
-      const occasion = await tokenMaster.getOccasion(i)
-      occasions.push(occasion)
-    }
-
-    setOccasions(occasions)
-
-    window.ethereum.on('accountsChanged', async () => {
-      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' })
-      const account = ethers.utils.getAddress(accounts[0])
-      setAccount(account)
-    })
-  }
 
   useEffect(() => {
-    loadBlockchainData()
-  }, [])
+    const requestAccounts = async () => {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      setProvider(provider);
+
+      // Retrieve the current network details from the provider (e.g., Ethereum, Rinkeby).
+      const network = await provider.getNetwork();
+
+      // Get the contract address for the TokenMaster contract from the config object using the chain ID of the current network.
+      const address = config[network.chainId].TokenMaster.address;
+
+      // Create a new instance of the TokenMaster contract using the contract address, ABI, and the provider for interacting with the contract on the blockchain.
+      const tokenmaster = new ethers.Contract(address, TokenMasterABI, provider);
+      setTokenMaster(tokenmaster);
+
+      const totalOccasions = await tokenmaster.totalOccasions();
+
+      const occasions = [];
+      for (let i = 1; i <= totalOccasions.toNumber(); i++) {
+        const occasion = await tokenmaster.getEvent(i);
+        occasions.push(occasion);
+      }
+
+      setAllOccasion(occasions);
+      console.log(occasions);
+
+      // Listen for changes in the connected accounts
+      window.ethereum.on('accountsChanged', async () => {
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        const account = ethers.utils.getAddress(accounts[0]);
+        setAccounts(account);
+      });
+    };
+
+    requestAccounts(); // Request accounts when the component mounts
+  }, []); // Empty dependency array means this effect runs only once
 
   return (
     <div>
       <header>
-        <Navigation account={account} setAccount={setAccount} />
-
-        <h2 className="header__title"><strong>Event</strong> Tickets</h2>
+        <Navigation accounts={accounts} setAccounts={setAccounts} />
+        <h2 className="header__title"><strong>Event</strong>Tickets</h2>
       </header>
-
       <Sort />
-
-      <div className='cards'>
-        {occasions.map((occasion, index) => (
+      <div>
+        {allOccasion.length > 0 ? allOccasion.map((oneOccasion, index) => (
           <Card
-            occasion={occasion}
-            id={index + 1}
+            oneOccasion={oneOccasion}
             tokenMaster={tokenMaster}
             provider={provider}
-            account={account}
+            accounts={accounts}
             toggle={toggle}
             setToggle={setToggle}
-            setOccasion={setOccasion}
-            key={index}
-          />
-        ))}
+            setOneOccasion={setOneOccasion}
+            key={index} />
+        )) : <p>Loading events...</p>}
       </div>
 
-      {toggle && (
-        <SeatChart
-          occasion={occasion}
-          tokenMaster={tokenMaster}
-          provider={provider}
-          setToggle={setToggle}
-        />
-      )}
+      {toggle && <SeatChart
+        oneOccasion={oneOccasion}
+        tokenMaster={tokenMaster}
+        provider={provider}
+        setToggle={setToggle}
+      />}
+
     </div>
   );
 }
 
 export default App;
+

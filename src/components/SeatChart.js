@@ -6,12 +6,12 @@ import Seat from './Seat'
 // Import Assets
 import close from '../assets/close.svg'
 
-const SeatChart = ({ occasion, tokenMaster, provider, setToggle }) => {
+const SeatChart = ({ oneOccasion, tokenMaster, provider, setToggle }) => {
   const [seatsTaken, setSeatsTaken] = useState(false)
   const [hasSold, setHasSold] = useState(false)
 
   const getSeatsTaken = async () => {
-    const seatsTaken = await tokenMaster.getSeatsTaken(occasion.id)
+    const seatsTaken = await tokenMaster.getSeatsTaken(oneOccasion.id)
     setSeatsTaken(seatsTaken)
   }
 
@@ -19,7 +19,7 @@ const SeatChart = ({ occasion, tokenMaster, provider, setToggle }) => {
     setHasSold(false)
 
     const signer = await provider.getSigner()
-    const transaction = await tokenMaster.connect(signer).mint(occasion.id, _seat, { value: occasion.cost })
+    const transaction = await tokenMaster.connect(signer).mint(oneOccasion.id, _seat, { value: oneOccasion.cost })
     await transaction.wait()
 
     setHasSold(true)
@@ -32,7 +32,7 @@ const SeatChart = ({ occasion, tokenMaster, provider, setToggle }) => {
   return (
     <div className="occasion">
       <div className="occasion__seating">
-        <h1>{occasion.name} Seating Map</h1>
+        <h1>{oneOccasion.name} Seating Map</h1>
 
         <button onClick={() => setToggle(false)} className="occasion__close">
           <img src={close} alt="Close" />
@@ -60,7 +60,7 @@ const SeatChart = ({ occasion, tokenMaster, provider, setToggle }) => {
           <strong>WALKWAY</strong>
         </div>
 
-        {seatsTaken && Array(Number(occasion.maxTickets) - 50).fill(1).map((e, i) =>
+        {seatsTaken && Array(Number(oneOccasion.maxTickets) - 50).fill(1).map((e, i) =>
           <Seat
             i={i}
             step={26}
@@ -81,7 +81,7 @@ const SeatChart = ({ occasion, tokenMaster, provider, setToggle }) => {
         {seatsTaken && Array(25).fill(1).map((e, i) =>
           <Seat
             i={i}
-            step={(Number(occasion.maxTickets) - 24)}
+            step={(Number(oneOccasion.maxTickets) - 24)}
             columnStart={22}
             maxColumns={5}
             rowStart={2}

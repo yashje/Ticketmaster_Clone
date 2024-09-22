@@ -62,7 +62,7 @@ async function main() {
   ]
 
   for (var i = 0; i < 5; i++) {
-    const transaction = await tokenMaster.connect(deployer).list(
+    const transaction = await tokenMaster.connect(deployer).event_list(
       occasions[i].name,
       occasions[i].cost,
       occasions[i].tickets,
@@ -81,3 +81,6 @@ main().catch((error) => {
   console.error(error);
   process.exitCode = 1;
 });
+
+
+// Deployed TokenMaster Contract at: 0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512
